@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'models/mymodel.dart';
 
 class Detail extends StatefulWidget {
-  Model data;
+  Meal data;
 
   Detail({Key key, this.data});
 
@@ -51,7 +51,7 @@ class DetailState extends State<Detail> {
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 20.0)),
-                                      Text(widget.data.title)
+//                                      Text(widget.data.title)
                                     ],
                                   ),
                                 ),
@@ -64,7 +64,7 @@ class DetailState extends State<Detail> {
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 20.0)),
-                                      Text(widget.data.description)
+//                                      Text(widget.data.description)
                                     ],
                                   ),
                                 )

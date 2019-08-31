@@ -1,6 +1,12 @@
+import 'dart:convert';
+
 import 'package:dilomovie/detail.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+
+import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 
 import 'models/mymodel.dart';
 
@@ -15,44 +21,60 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  // https://pastebin.com/Mbr7rzpE
+  Future<Model> getMeals() async {
+    final Response response = await http.get('https://www.themealdb.com/api/json/v1/1/filter.php?c=Seafood');
+
+    if (response.statusCode == 200) {
+      return Model.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Gagal mendapatkan data');
+    }
+  }
 
   @override
-  Widget build(BuildContext context) {
-    List<Model> myData = [Model("Spiderman 1", "Hellow spiderman 1"),
-      Model("Spiderman 2", "Hellow spiderman 2"),
-      Model("Spiderman 3", "Hellow spiderman 3"),
-      Model("Spiderman 4", "Hellow spiderman 4"),
-      Model("Spiderman 5", "Hellow spiderman 5"),
-      Model("Spiderman 6", "Hellow spiderman 6"),
-      Model("Spiderman 7", "Hellow spiderman 7")];
-
-    return Scaffold(
+  Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: ListView.builder(
-        itemCount: myData.length,
-        itemBuilder: (BuildContext context, int position) {
-          var data = myData[position];
+      body: FutureBuilder<Model>(
+        future: getMeals(),
+        builder: (context, snapshoot){
+          if(!snapshoot.hasData) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  CircularProgressIndicator(),
+                  Text("loading")
+                ],
+              ),
+            );
+          } else if(snapshoot.hasError) {
+            return Text("{$snapshoot.error}");
+          }
 
-          return GestureDetector(
-            child: _createList(data),
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(
-                builder: (context) {
-                  return Detail(data: data);
-                }
-              ));
-            }
+          return ListView.builder(
+              itemCount: snapshoot.data.meals.length,
+              itemBuilder: (BuildContext context, int position) {
+                var data = snapshoot.data.meals[position];
+
+                return GestureDetector(
+                    child: _createList(data),
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(
+                          builder: (context) {
+                            return Detail(data: data);
+                          }
+                      ));
+                    }
+                );
+              }
           );
         }
       )
     );
-  }
 
-  Widget _createList(Model data) {
-    return Container(
+  Widget _createList(Meal data) => Container(
       margin: EdgeInsets.only(top: 5.0, bottom: 5.0, right: 10.0, left: 10.0),
       width: MediaQuery.of(context).size.width,
       decoration: BoxDecoration(
@@ -64,7 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Container(
             width: 120.0,
             height: 180.0,
-            child: Image.asset('assets/images/spiderman_movie.jpg',
+            child: Image.network(data.strMealThumb,
             fit: BoxFit.cover)
           ),
           Container(
@@ -72,13 +94,12 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(data.title),
-                Text(data.description)
+                Text(data.strMeal),
+//                Text(data.description)
               ],
             )
           )
         ],
       ),
     );
-  }
 }
